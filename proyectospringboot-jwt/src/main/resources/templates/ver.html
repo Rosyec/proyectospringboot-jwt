@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head th:replace="layaout/layaout :: head"></head>
+
+<body>
+    <header th:replace="layaout/layaout :: header"></header>
+
+    <div class="container">
+
+        <div class="card mb-3 mt-3" style="max-width: 80%; margin: auto;">
+            <div class="row g-0">
+                <div class="col-md-4" id="ver-foto">
+                    <img th:if="${#strings.length(cliente.foto) > 0}" class="img-fluid rounded-start"
+                        th:src="@{/app/uploads/} + ${cliente.foto}" alt="">
+                </div>
+                <div class="col-md-8 bg-light">
+                    <div class="card-body">
+                        <h4 class="card-title" th:text="${titulo}"></h4>
+                        <ul class="list-group list-group-flush mt-3">
+                            <li class="list-group-item" th:text="${cliente.nombre}"></li>
+                            <li class="list-group-item" th:text="${cliente.apellido}"></li>
+                            <li class="list-group-item" th:text="${cliente.email}"></li>
+                        </ul>
+                        <div th:if="${#lists.isEmpty(cliente.facturas)}" class="alert alert-info my-2"
+                            th:text="${'No hay facturas asociadas a este cliente'}"></div>
+                        <table th:if="${not #lists.isEmpty(cliente.facturas)}" class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th th:text="#{text.cliente.ver.descripcion}">Descripción</th>
+                                    <th th:text="#{text.cliente.ver.observacion}">Observación</th>
+                                    <th th:text="#{text.cliente.ver.fecha}">Fecha</th>
+                                    <th th:text="#{text.cliente.ver.total}">Total</th>
+                                    <th sec:authorize="hasRole('ROLE_ADMIN')" th:text="#{text.cliente.ver.accion}">Acción</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="factura : ${cliente.facturas}">
+                                    <td th:text="${factura.id}"></td>
+                                    <td th:text="${factura.descripcion}"></td>
+                                    <td th:text="${factura.observacion}"></td>
+                                    <td th:text="${factura.createAt}"></td>
+                                    <td th:text="${factura.total}"></td>
+                                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                                        <a th:href="@{/factura/ver/} + ${factura.id}"><i class="bi bi-eye-fill"></i></a> 
+                                        /
+                                        <a th:href="@{/factura/eliminar/} + ${factura.id}"><i class="bi bi-trash3"></i></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="card-text"><small class="text-muted"
+                                th:text="#{text.cliente.createAt} + ': ' + ${cliente.createAt}"></small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="layaout/layaout :: footer"></footer>
+</body>
+
+</html>
