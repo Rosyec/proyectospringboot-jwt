@@ -110,4 +110,19 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     }
 
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+
+    Map<String, Object> body = new HashMap<>();
+    body.put("message", "onError: Alguno de los parametros son invalidos");
+    body.put("error", failed.getMessage());
+
+    response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+    response.setContentType("application/json");
+    response.setStatus(401);
+
+    }
+
+    
+
 }
