@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import com.example.miproyectowebspringboot.filter.JWTAuthenticationFilter;
 import com.example.miproyectowebspringboot.filter.JWTAuthorizationFilter;
 import com.example.miproyectowebspringboot.models.entity.service.JpaUserDetailsService;
+import com.example.miproyectowebspringboot.service.JWTService;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -39,6 +40,9 @@ public class SpringSecurityConfig {
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
 
+    @Autowired
+    private JWTService jwtService;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeRequests()
@@ -64,8 +68,8 @@ public class SpringSecurityConfig {
                  * .exceptionHandling().accessDeniedPage("/error_403")
                  */
                 .and()
-                .addFilter(new JWTAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
-                .addFilter(new JWTAuthorizationFilter(authenticationConfiguration.getAuthenticationManager()))
+                .addFilter(new JWTAuthenticationFilter(authenticationConfiguration.getAuthenticationManager(), jwtService))
+                .addFilter(new JWTAuthorizationFilter(authenticationConfiguration.getAuthenticationManager(), jwtService))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return httpSecurity.build();
