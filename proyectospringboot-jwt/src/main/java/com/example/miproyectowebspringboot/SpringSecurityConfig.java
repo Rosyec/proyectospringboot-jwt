@@ -10,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import com.example.miproyectowebspringboot.filter.JWTAuthenticationFilter;
 import com.example.miproyectowebspringboot.models.entity.service.JpaUserDetailsService;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,62 +35,71 @@ public class SpringSecurityConfig {
     @Autowired
     private JpaUserDetailsService jpaUserDetailsService;
 
+    @Autowired
+    private AuthenticationConfiguration authenticationConfiguration;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeRequests().antMatchers("/", "/css/**", "/js/**", "/img/**", "/app/listar", "/locale", "/api-rest-json", "/api-rest-xml", "/api-clientes/**").permitAll()
+        httpSecurity.authorizeRequests()
+                .antMatchers("/", "/css/**", "/js/**", "/img/**", "/app/listar", "/locale", "/api-rest-json",
+                        "/api-rest-xml")
+                .permitAll()
                 // .antMatchers("/app/ver/**").hasAnyRole("USER")
                 // .antMatchers("/uploads/**").hasAnyRole("ADMIN")
                 // .antMatchers("/app/form/**").hasAnyRole("ADMIN")
                 // .antMatchers("/app/eliminar/**").hasAnyRole("ADMIN")
                 // .antMatchers("/factura/**").hasAnyRole("ADMIN")
                 .anyRequest().authenticated()
-                    .and()
-                    .formLogin()
-                    .successHandler(loginSuccessHandler)
-                    .loginPage("/login")
-                    // .defaultSuccessUrl("/app/listar")
-                    .permitAll()
-                    .and()
-                    .logout().permitAll()
-                    .and()
-                    .exceptionHandling().accessDeniedPage("/error_403")
-                    .and()
-                    .csrf().disable()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                /*
+                 * .and()
+                 * .formLogin()
+                 * .successHandler(loginSuccessHandler)
+                 * .loginPage("/login")
+                 * // .defaultSuccessUrl("/app/listar")
+                 * .permitAll()
+                 * .and()
+                 * .logout().permitAll()
+                 * .and()
+                 * .exceptionHandling().accessDeniedPage("/error_403")
+                 */
+                .and()
+                .addFilter(new JWTAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return httpSecurity.build();
     }
 
     // @Bean
     // public UserDetailsService userDetailsService() throws Exception {
 
-    //     PasswordEncoder passwordEncoder = this.passwordEncoder;
-    //     InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+    // PasswordEncoder passwordEncoder = this.passwordEncoder;
+    // InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
 
-    //     // manager.createUser(
-    //     //         User
-    //     //                 .withUsername("root")
-    //     //                 .password(passwordEncoder
-    //     //                         .encode("admin"))
-    //     //                 .roles("ADMIN", "USER")
-    //     //                 .build());
+    // // manager.createUser(
+    // // User
+    // // .withUsername("root")
+    // // .password(passwordEncoder
+    // // .encode("admin"))
+    // // .roles("ADMIN", "USER")
+    // // .build());
 
-    //     // manager.createUser(User
-    //     //         .withUsername("ceysor")
-    //     //         .password(passwordEncoder
-    //     //                 .encode("12345"))
-    //     //         .roles("USER")
-    //     //         .build());
+    // // manager.createUser(User
+    // // .withUsername("ceysor")
+    // // .password(passwordEncoder
+    // // .encode("12345"))
+    // // .roles("USER")
+    // // .build());
 
-    //     return manager;
+    // return manager;
     // }
-    
+
     @Autowired
-    public void configurerGlobal(AuthenticationManagerBuilder build) throws Exception{
+    public void configurerGlobal(AuthenticationManagerBuilder build) throws Exception {
         PasswordEncoder passwordEncoder = this.passwordEncoder;
-        
+
         build
-        .userDetailsService(jpaUserDetailsService)
-        .passwordEncoder(passwordEncoder);
+                .userDetailsService(jpaUserDetailsService)
+                .passwordEncoder(passwordEncoder);
     }
 
 }
