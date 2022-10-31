@@ -3,6 +3,7 @@ package com.example.miproyectowebspringboot.filter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import com.example.miproyectowebspringboot.models.entity.Usuario;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Claims;
@@ -46,13 +48,24 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             throws AuthenticationException {
 
         String username = obtainUsername(request);
-        username = (username != null) ? username.trim() : "";
+        //username = (username != null) ? username.trim() : "";
 
         String password = obtainPassword(request);
-        password = (password != null) ? password : "";
+        //password = (password != null) ? password : "";
 
         if (username != null && password != null) {
-            logger.info("Username desde request postman: " + username);
+            logger.info("Username desde request postman (form-data): " + username);
+        }else{
+            Usuario user = null;
+            try {
+                user = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);//Asi leemos un JSON, con ObjectMapper().readValue
+                username = user.getUsername();
+                password = user.getPassword();
+                logger.info("Username desde request postman (raw): " + username);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
 
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
@@ -62,6 +75,10 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+
+
+        String keyString = Base64.getEncoder().encodeToString(SECRET_KEY.getEncoded());
+        logger.info("SECRET-KEY: " + keyString);
 
         //Obtenemos los roles
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
