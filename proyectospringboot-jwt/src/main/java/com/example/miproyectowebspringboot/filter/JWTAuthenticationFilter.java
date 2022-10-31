@@ -33,7 +33,7 @@ import io.jsonwebtoken.security.Keys;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    //Genera nuestra llave statica
+    // Genera nuestra llave statica
     public static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
     private AuthenticationManager authenticationManager;
@@ -48,19 +48,21 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             throws AuthenticationException {
 
         String username = obtainUsername(request);
-        //username = (username != null) ? username.trim() : "";
+        // username = (username != null) ? username.trim() : "";
 
         String password = obtainPassword(request);
-        //password = (password != null) ? password : "";
+        // password = (password != null) ? password : "";
 
         if (username != null && password != null) {
             logger.info("Username desde request postman (form-data): " + username);
-        }else{
+        } else {
             Usuario user = null;
             try {
-                user = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);//Asi leemos un JSON, con ObjectMapper().readValue
+                user = new ObjectMapper().readValue(request.getInputStream(), Usuario.class);// Asi leemos un JSON, con
+                                                                                             // ObjectMapper().readValue
                 username = user.getUsername();
                 password = user.getPassword();
+                
                 logger.info("Username desde request postman (raw): " + username);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -74,16 +76,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+            Authentication authResult) throws IOException, ServletException {
+        // Cuando la autenticacion es correcta
 
         String keyString = Base64.getEncoder().encodeToString(SECRET_KEY.getEncoded());
         logger.info("SECRET-KEY: " + keyString);
 
-        //Obtenemos los roles
+        // Obtenemos los roles
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
 
-        //Escribimos los roles en el claims pero con tipo JSON
+        // Escribimos los roles en el claims pero con tipo JSON
         Claims claims = Jwts.claims();
         claims.put("authorities", new ObjectMapper().writeValueAsString(roles));
 
@@ -95,7 +98,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .setExpiration(new Date(System.currentTimeMillis() + 3600000 * 4))
                 .compact();
 
-        //Declaramos el header para el response
+        // Declaramos el header para el response
         response.addHeader("Authorization", "Bearer " + token);// Esto es un estandar de JWT
 
         Map<String, Object> body = new HashMap<>();
@@ -103,7 +106,8 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("user", (User) authResult.getPrincipal());
         body.put("message", "Hola usuario, has iniciado sesión!");
 
-        //Escribimos el body en el response sin antes convertirlo a JSON con ObjectMapper
+        // Escribimos el body en el response sin antes convertirlo a JSON con
+        // ObjectMapper
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
         response.setStatus(200);
         response.setContentType("application/json");
@@ -111,18 +115,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     }
 
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+            AuthenticationException failed) throws IOException, ServletException {
+        // Cuando la autenticacion es incorrecta
+        Map<String, Object> body = new HashMap<>();
+        body.put("message", "onError: Alguno de los parametros son invalidos");
+        body.put("error", failed.getMessage());
 
-    Map<String, Object> body = new HashMap<>();
-    body.put("message", "onError: Alguno de los parametros son invalidos");
-    body.put("error", failed.getMessage());
-
-    response.getWriter().write(new ObjectMapper().writeValueAsString(body));
-    response.setContentType("application/json");
-    response.setStatus(401);
+        response.getWriter().write(new ObjectMapper().writeValueAsString(body));
+        response.setContentType("application/json");
+        response.setStatus(401);
 
     }
-
-    
 
 }

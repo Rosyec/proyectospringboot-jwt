@@ -11,6 +11,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 import com.example.miproyectowebspringboot.filter.JWTAuthenticationFilter;
+import com.example.miproyectowebspringboot.filter.JWTAuthorizationFilter;
 import com.example.miproyectowebspringboot.models.entity.service.JpaUserDetailsService;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -64,6 +65,7 @@ public class SpringSecurityConfig {
                  */
                 .and()
                 .addFilter(new JWTAuthenticationFilter(authenticationConfiguration.getAuthenticationManager()))
+                .addFilter(new JWTAuthorizationFilter(authenticationConfiguration.getAuthenticationManager()))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         return httpSecurity.build();
